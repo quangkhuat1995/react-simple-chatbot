@@ -6,16 +6,22 @@ import Options from './Options';
 import OptionsStepContainer from './OptionsStepContainer';
 
 class OptionsStep extends Component {
-  onOptionClick = ({ value }) => {
+  onOptionClick = async ({ value, onClick, awaitOnClick }) => {
     const { triggerNextStep } = this.props;
-
+    if (onClick && typeof onClick === 'function') {
+      if (awaitOnClick) {
+        await onClick()
+      } else {
+        onClick()
+      }
+    }
     triggerNextStep({ value });
   };
 
   renderOption = option => {
     const { bubbleOptionStyle, step } = this.props;
     const { user } = step;
-    const { value, label, optionData } = option;
+    const { value, label, optionData, onClick, awaitOnClick } = option;
 
     return (
       <Option key={value} className="rsc-os-option">
@@ -23,7 +29,7 @@ class OptionsStep extends Component {
           className="rsc-os-option-element"
           style={bubbleOptionStyle}
           user={user}
-          onClick={() => this.onOptionClick({ value })}
+          onClick={() => this.onOptionClick({ value, onClick, awaitOnClick })}
           {...optionData}
         >
           {label}
