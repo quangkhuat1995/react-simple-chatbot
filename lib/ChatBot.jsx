@@ -121,7 +121,8 @@ class ChatBot extends Component {
     this.supportsScrollBehavior = 'scrollBehavior' in document.documentElement.style;
 
     if (this.content) {
-      this.content.addEventListener('DOMNodeInserted', this.onNodeInserted);
+      this.mutationObserver = new MutationObserver(this.handleMutation);
+      this.mutationObserver.observe(this.content, { childList: true, subtree: true });
       window.addEventListener('resize', this.onResize);
     }
 
@@ -167,23 +168,25 @@ class ChatBot extends Component {
 
   componentWillUnmount() {
     if (this.content) {
-      this.content.removeEventListener('DOMNodeInserted', this.onNodeInserted);
+      if (this.mutationObserver) {
+        this.mutationObserver.disconnect();
+      }
       window.removeEventListener('resize', this.onResize);
     }
   }
 
-  onNodeInserted = event => {
-    const { currentTarget: target } = event;
+  handleMutation = () => {
     const { enableSmoothScroll } = this.props;
 
-    if (enableSmoothScroll && this.supportsScrollBehavior) {
-      target.scroll({
-        top: target.scrollHeight,
-        left: 0,
-        behavior: 'smooth'
-      });
-    } else {
-      target.scrollTop = target.scrollHeight;
+    if (this.content) {
+      if (enableSmoothScroll && this.supportsScrollBehavior) {
+        this.content.scroll({
+          top: this.content.scrollHeight,
+          behavior: 'smooth',
+        });
+      } else {
+        this.content.scrollTop = this.content.scrollHeight;
+      }
     }
   };
 
